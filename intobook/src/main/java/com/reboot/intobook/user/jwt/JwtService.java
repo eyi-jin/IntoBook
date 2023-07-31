@@ -117,8 +117,12 @@ public class JwtService {
      * 헤더를 가져온 후 "Bearer"를 삭제(""로 replace)
      */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
+        log.info("extractAccessToken 실행");
         request.getHeader(accessHeader);
-        return Optional.ofNullable(request.getHeader(accessHeader));
+        log.info("accessToken: " + request.getHeader((accessHeader)));
+        return Optional.ofNullable(request.getHeader(accessHeader))
+                .filter(refreshToken -> refreshToken.startsWith(BEARER))
+                .map(refreshToken -> refreshToken.replace(BEARER, ""));
     }
 
     /**
@@ -130,12 +134,16 @@ public class JwtService {
      */
     public Optional<String> extractEmail(String accessToken) {
         try {
+
+            log.info("extractEmail: " + accessToken);
+
             // 토큰 유효성 검사하는 데에 사용할 알고리즘이 있는 JWT verifier builder 반환
-            return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
-                    .build() // 반환된 빌더로 JWT verifier 생성
-                    .verify(accessToken) // accessToken을 검증하고 유효하지 않다면 예외 발생
-                    .getClaim(EMAIL_CLAIM) // claim(Emial) 가져오기
-                    .asString());
+
+            Optional<String> a = Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey)).build().verify(accessToken).getClaim(EMAIL_CLAIM).asString());
+
+            log.info("email: " + a);
+
+            return a;
         } catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다.");
             return Optional.empty();
@@ -160,6 +168,7 @@ public class JwtService {
      * RefreshToken DB 저장(업데이트)
      */
     public void updateRefreshToken(String email, String refreshToken) {
+        log.info("email: " + email);
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
@@ -171,6 +180,7 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token) {
+        log.info("token: " + token);
         try {
             log.info("isTokenValid 실행");
             JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);

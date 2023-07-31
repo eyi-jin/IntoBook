@@ -1,9 +1,6 @@
 package com.reboot.intobook.user.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +14,7 @@ import java.util.List;
 @Getter @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class User {
 
     @Id
@@ -45,10 +43,6 @@ public class User {
 //    @Column(name = "user_book")
 //    @OneToMany(mappedBy = "user")
 //    private List<UserBook> userBook = new ArrayList<>();
-
-    public User() {
-
-    }
 
     public void updateRefreshToken(String updateRefreshToken) {
         this.refreshToken = updateRefreshToken;

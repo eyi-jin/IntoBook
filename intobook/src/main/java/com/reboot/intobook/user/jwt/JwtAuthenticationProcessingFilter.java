@@ -20,6 +20,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Jwt 인증 필터
@@ -122,11 +123,26 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
      */
     public void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response,
                                                   FilterChain filterChain) throws ServletException, IOException {
+        
+        log.info("checkAccessTokenAndAuthentication 실행");
+
+        Optional<String> accessToken1 = jwtService.extractAccessToken(request);
+
+        log.info("차민준 accessToken: " + accessToken1);
+
+        Optional<String> filter = accessToken1.filter(jwtService::isTokenValid);
+
+        log.info("차민준 filter: " + filter);
+
         jwtService.extractAccessToken(request)
                 .filter(jwtService::isTokenValid)
                 .ifPresent(accessToken -> jwtService.extractEmail(accessToken)
                         .ifPresent(email -> userRepository.findByEmail(email)
                                 .ifPresent(this::saveAuthentication)));
+
+
+
+        log.info("checkAccessTokenAndAuthentication 종료");
 
         filterChain.doFilter(request, response);
     }
@@ -158,5 +174,6 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                         authoritiesMapper.mapAuthorities(userDetailsUser.getAuthorities()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.info("saveAuthentication 실행");
     }
 }
